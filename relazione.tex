@@ -245,7 +245,7 @@ delle richieste:
 \end{figure}
 \newpage
 Nell'\textit{index.html} si ha quindi:
-\begin{center}
+\begin{shaded}
 \begin{minted}{html}
 <h3>Dettagli</h3>
 
@@ -276,7 +276,7 @@ Nell'\textit{index.html} si ha quindi:
   </div>
  </div>
 \end{minted}
-\end{center}
+\end{shaded}
 infine i risulati della query verranno visualizzati mediante:
 \begin{shaded}
 \begin{minted}{html}
@@ -372,5 +372,156 @@ Abbiamo visto il file \textit{HTML} ma questo non basta in quanto serve il \text
 \end{minted}
 \end{shaded}
 con tutti i file per la parte di CSS, tutto il necessario per jquery e bootstrap, i fonts etc...\\
-Ci concentriamo ovviamente sul \textit{custom.js} che abbiamo scritto per interfacciare frontend e backend.
+Ci concentriamo ovviamente sul \textit{custom.js} che abbiamo scritto per interfacciare frontend e backend.\\
+Aprendo il file notiamo innanzitutto una definizione di costante:
+\begin{shaded}
+\begin{minted}{js}
+const API = "http://localhost:8080/brainjobs-gateway/api/v1/";
+\end{minted}
+\end{shaded}
+questa rappresenta parte del path per i vari endpoint presenti nel gateway.\\
+Proseguendo oltre incontriamo la prima funzione di \textbf{jQuery} che controlla che quanto
+è contenuto al suo interno venga eseguito unicamente una volta che il \textbf{DOM}
+sia pronto per l'esecuzione di codice javascript:
+\begin{shaded}
+\begin{minted}{js}
+\$(document).ready(function(){
+ ...
+});
+\end{minted}
+\end{shaded}
+Passiamo ora ad analizzare le tre operazioni base che vengono effettuate.\\
+Nell'\textit{index.html} il bottone associato all'invio di una richiesta
+era stato identificato con l'id \textit{send-form} possiamo quindi sfruttare il metodo
+\textit{.click()} di jquery per triggerare una funzione \textit{function(e)
+} con una sequenza di istruzioni ogni volta che viene clickato il bottone.
+Vediamo quindi queste istruzioni nel caso dell'invio del form.\\
+Innanzitutto abbiamo un'struzione per prevenire l'azione di default di un evento (\textit{e}), evitando quindi il refresh della pagina:
+\begin{shaded}
+\begin{minted}{js}
+ e.preventDefault();
+\end{minted}
+\end{shaded}
+Definiamo poi una variabile per ogni campo del form sfruttando il metodo di jquery
+\textit{.val()} che resituisce il valore di un id:
+\begin{shaded}
+\begin{minted}{js}
+ var user_id = \$("#user_id").val();
+ var title = \$("#title").val()
+ var language = \$("#language").val();
+ var framework = \$("#framework").val();
+ var dataset = \$("#dataset").val();
+ var dataset_datatype = \$("#dataset_datatype").val();
+ var model = \$("#model").val();
+\end{minted}
+\end{shaded}
+La traccia impone l'obbligo di avere tutti i campi compilati tranne quello riguardante
+il framework, che è opzionale. Una if con la condizione che basti l'assenza
+di uno dei campi viene usata per restituire, mediante l'id \textit{send-form-result}
+e il metodo \textit{.html}, un alert, con un bottone dedicato alla sua chiusura:
+\begin{shaded}
+\begin{minted}{js}
+if (!user_id || !title || !language ||
+     !dataset || !dataset_datatype || !model ) { 
+\$('#send-form-result').html(
+   '<div class="alert alert-warning alert-dismissible fade show"
+     role="alert">'
+     +'<strong>Warning!</strong> Compilare i campi obbligatori.'
+     +'<button type="button" class="close"
+        data-dismiss="alert" aria-label="Close">'
+     +'<span aria-hidden="true">&times;</span>'
+     +'</button>'
+     +'</div>');
+ }
+\end{minted}
+\end{shaded}
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale = 0.7]{img/err-form.png}
+  \caption{alert nel caso di form incompleto}
+\end{figure}
+Nel caso invece di form inserito correttamente si può procedere, mediante l'else, con la richiesta \textbf{ajax}.\\
+\begin{shaded}
+In informatica AJAX, acronimo di Asynchronous JavaScript and XML, è una tecnica di sviluppo software per la realizzazione di applicazioni web interattive (Rich Internet Application). Lo sviluppo di applicazioni HTML con AJAX si basa su uno scambio di dati in background fra web browser e server, che consente l'aggiornamento dinamico di una pagina web senza esplicito ricaricamento da parte dell'utente.
+
+AJAX è asincrono nel senso che i dati extra sono richiesti al server e caricati in background senza interferire con il comportamento della pagina esistente. Normalmente le funzioni richiamate sono scritte con il linguaggio JavaScript. Tuttavia, e a dispetto del nome, l'uso di JavaScript e di XML non è obbligatorio, come non è detto che le richieste di caricamento debbano essere necessariamente asincrone. 
+\end{shaded}
+Si usa quindi il metodo \textit{\$.ajax()}, a cui viene specificato, mediante il campo
+\textit{type}, il tipo di richiesta, mediante il campo \textit{url}, l'endpoint,
+mediante il campo \textit{dataType}, il tipo di dato che ci si aspetta dal server,
+mediante il campo \textit{data}, i dati che devono essere mandati al server, mediante il campo \textit{success}, la funzione che deve essere eseguita
+se la richeista avviene con successo, e, mediante il campo \textit{error}, la funzione da eseguire in caso di errore.\\
+Nel nostro caso queste ultime due funzioni sono due alert che avvisano se la richiesta è stata effettuata on successo o meno:
+\begin{figure}[H]
+\centering
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[scale = 0.42]{img/good-form.png}
+  \caption{alert in caso di successo}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[scale = 0.4]{img/bad-form.png}
+  \caption{alert in caso di errore}
+\end{minipage}
+\end{figure}
+Passiamo ora alla prima delle due query, quella nel quale si inserisce uno \textit{user\_id} per ottenere tutte le richieste da lui effettuate. Come prima procediamo al click sul bottone, stavolta con l'id \textit{get-all-requests}, e salviamo in una variabile lo user_id:
+
+\begin{shaded}
+\begin{minted}{js}
+\$(document).ready(function() {
+  var user_id = \$("#user_id_search").val();
+  e.preventDefault();
+  ...
+});
+\end{minted}
+\end{shaded}
+\newpage
+Anche qui con un if controlliamo che sia stato effettivamente inserito uno user\_id prima di effettuare la query premendo il bottone e in caso contrario si provvede a stampare un alert dedicato:
+
+\begin{shaded}
+\begin{minted}{js}
+ if( !user_id ) {
+  \$('#results').html('<div class="alert alert-warning
+    alert-dismissible fade show" role="alert">'
+   +'<strong>Warning!</strong> Compila il campo user_id.'
+   +'<button type="button" class="close" data-dismiss="alert
+    " aria-label="Close">'
+   +'<span aria-hidden="true">&times;</span>'
+   +'</button>'
+   +'</div>');
+ }
+\end{minted}
+\end{shaded}
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale = 0.7]{img/bad-user.png}
+  \caption{alert nel caso di assenza di inserimento dello user}
+\end{figure}
+Altrimenti, mediante l'else, effettuiamo una richiesta di tipo \textit{GET} mediante ajax.
+Si hanno due casi di successo, il primo se la richiesta avviene correttamente ma non
+si hanno richieste per quello user\_id, la seconda se si ha invece almeno una richiesta.
+Nel primo caso si controlla che l'array contenente le informazioni abbia lunghezza 0,
+in tal caso si stampa un alert.
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale = 0.7]{img/no-user.png}
+  \caption{alert nel caso di assenza di richieste}
+\end{figure}
+Nel secondo caso,
+mediante il metodo \textit{.each(function)} che permette di iterare su un oggetto
+jquery permettendo di eseguire una \textit{function} per ogni elemento, stampo i
+vari campi di ogni richiesta che mi viene resitutita dal server salvando progressivamente il tutto in una stringa \textit{result} che verrà associata all'id omonimo nell'\textit{index.html}. \\
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale = 0.65]{img/good-user.png}
+  \caption{risultati in caso di presenza di richieste}
+\end{figure}
+\newpage
+In caso di \textit{error} invece si avrà il solito alert:
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale = 0.7]{img/bad-user-query.png}
+  \caption{alert in caso di errore nella richiesta ajax}
+\end{figure}
 \end{document}
