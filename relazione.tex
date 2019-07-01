@@ -857,4 +857,17 @@ app.get("/brainjobs-backend/api/v1/jobs/:job_id", (req, res) =>{
 });
 \end{minted}
 \end{shaded}
+\chapter{Gateway}
+Nell'ultimo punto del progetto si introduce il concetto di API Gateway. L’API Gateway è un componente che, fra le sue funzionalità, maschera la presenza di uno o
+più backend alle applicazioni di frontend, occupandosi di esporre una API univoca e di
+aggregare, filtrare e comporre richieste/risposte per/da applicazioni di backend.
+Nel nostro caso, semplificato, l’API Gateway può replicare per semplicità la stessa API esposta dal
+backend ma il suo compito sarà quello di utilizzare internamente un REST Client per
+inoltrare le richieste del frontend al backend e restituirne le risposte.\\
+Nel complesso si ottiene quindi la seguente archiettura generale:
+\begin{figure}[h!]
+  \centering
+  \includegraphics[scale = 0.68]{img/arch.png}
+  \caption{architettura finale del progetto}
+\end{figure}
 \end{document}
