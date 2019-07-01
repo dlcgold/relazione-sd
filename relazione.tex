@@ -624,4 +624,237 @@ Quindi nel complesso la pagina si presenta così:
   \includegraphics[scale = 0.4]{img/pagina3.png}
   \caption{frontend brainjob}
 \end{figure}
+\chapter{Backend}
+Per il backend ci siamo appoggiati su \textbf{nodejs}:
+\begin{shaded}
+Node.js è una runtime di JavaScript Open source multipiattaforma orientato agli eventi per l'esecuzione di codice JavaScript Server-side, costruita sul motore JavaScript V8 di Google Chrome. Molti dei suoi moduli base sono scritti in JavaScript, e gli sviluppatori possono scrivere nuovi moduli in JavaScript.
+
+In origine JavaScript veniva utilizzato principalmente lato client. In questo scenario gli script JavaScript, generalmente incorporati all'interno dell'HTML di una pagina web, vengono interpretati da un motore di esecuzione incorporato direttamente all'interno di un Browser. Node.js consente invece di utilizzare JavaScript anche per scrivere codice da eseguire lato server, ad esempio per la produzione del contenuto delle pagine web dinamiche prima che la pagina venga inviata al Browser dell'utente. Node.js in questo modo permette di implementare il cosiddetto paradigma "JavaScript everywhere" (JavaScript ovunque), unificando lo sviluppo di applicazioni Web intorno ad un unico linguaggio di programmazione (JavaScript).
+
+NodeJs ha un'architettura orientata agli eventi che rende possibile l’I/O asincrono. Questo design punta ad ottimizzare il Throughput e la scalabilità nelle applicazioni web con molte operazioni di input/output, è inoltre ottimo per applicazioni web Real-time (ad esempio programmi di comunicazione in tempo reale o browser game).
+
+Node.js è un progetto di sviluppo Open source distribuito gestito dalla Node.js Foundation e facilitato tramite il programma di progetti collaborativi della Linux Foundation. 
+\end{shaded}
+\newpage
+La struttura del backend è la seguente:
+\begin{shaded}
+\begin{minted}{shell}
+brainjobs-backend
+│   ├── api
+           index.js
+│   ├── db.json
+│   ├── index.js
+│   ├── node_modules
+│   ├── package.json
+│   └── package-lock.json
+\end{minted}
+\end{shaded}
+Partiamo con l'analizzare l'\textit{index.js} presente subito nella cartella \textit{brainjobs-backend}.
+Qui vengono definiti tutti i requisiti necessari per l'uso
+delle porte (8082 per il backend e 8081 per il frontend). Come database d'appoggio
+è stato scelto \textit{lowdb}, \url{https://github.com/typicode/lowdb}, ovvero
+un database minimale basato su file json che consente un facile utilizzo sia per quanto riguarda l'inizializzazione dello stesso che per quanto riguarda le query. All'interno del file viene quindi inizalizzato il file \textit{db.json} e ne vengono settati i valori di default:
+\begin{shaded}
+\begin{minted}{js}
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+
+const adapter = new FileSync('db.json');
+const db = low(adapter);
+
+db.defaults({ requests: [] }).write();
+\end{minted}
+\end{shaded}
+È stato scelto di usare un framework per web application chiamato \textit{express},
+\url{https://github.com/expressjs/express}. Usando express è facile istanziare una
+web app (usando il metodo \textit{.use()}) con metodi GET e POST. Sempre con express è possibile gestire il frontend
+in maniera statica, mediante \textit{express.static()}, (mentre il backend verrà eseguito dinamicamente). Con require
+si richiema l'\textit{index.js} contenuto nella sottocartella \textit{/api} al quale viene passato come argomento la web app generata da express e il database.
+\begin{shaded}
+\begin{minted}{js}
+var express = require('express');
+
+// backend
+var app_backend = express();
+var port_backend = 8082;
+// frontend
+var app_frontend = express();
+var port_frontend = 8081;
+
+console.log('Web Server started.');
+console.log('API started on: ' + port_backend);
+console.log('Static index on: ' + port_frontend);
+
+// API
+require(__dirname + '/api')(app_backend, db);
+
+// FRONT-END
+app_frontend.use('/brainjobs-frontend',
+ express.static('../brainjobs-frontend/'));
+\end{minted}
+\end{shaded}
+Viene anche usato \textit{body-parse}, \url{https://github.com/expressjs/body-parser}, che parsa il body della richiesta in un middleware, raggiungibile mediante \textit{req.body}.
+\begin{shaded}
+\begin{minted}{js}
+var bodyParser = require('body-parser');
+app_backend.use(bodyParser.urlencoded({ extended: false }));
+\end{minted}
+\end{shaded}
+\newpage
+Essendo questo uno dei due file che verranno effettivamente eseguiti si stampano le porte assegnate al backend e al frontend:
+\begin{shaded}
+\begin{minted}{shell}
+brainjobs-backend git:(v4) node index.js
+
+ Web Server started.
+ API started on: 8082
+ Static index on: 8081
+\end{minted}
+\end{shaded}
+Passiamo ora al file con le api vere e proprie. Come abbiamo visto viene caricato
+passandogli come parametri l'app istanziata da \textit{express} (che gode dei metodi \textit{.get()} e \textit{.post()}) e il database generato mediante \textit{lowdb}. All'inizio avremo quindi:
+\begin{shaded}
+\begin{minted}{js}
+module.exports = function (app, db) {
+  ...
+};
+\end{minted}
+\end{shaded}
+Sul primo endpoint, \textit{/brainjobs-backend/api/v1/jobs}, abbiamo innazitutto il salvataggio
+di una richiesta, mediante il metodo POST. Si ha accesso all'oggetto richiesta con \textit{req} e risposta con \textit{res}
+\begin{shaded}
+\begin{minted}{js}
+app.post("/brainjobs-backend/api/v1/jobs", (req, res) => { 
+  ...
+});
+\end{minted}
+\end{shaded}
+Viene richiesto di aggiungere ai dati inseriti dall'utente un campo \textit{job\_id} univoco, la data e lo stato della richiesta.
+Viene quindi usata una libreria aggiuntiva, \textit{uuid}, nella versione 4, \url{https://github.com/kelektiv/node-uuid}, per generare degli id univoci, infatti uuid sta per \textit{Universally Unique IDentifier}.
+\begin{shaded}
+\begin{minted}{js}
+var uuidv4 = require('uuid/v4');
+var job_id = uuidv4();
+\end{minted}
+\end{shaded}
+Per la data di creazione (campo \textit{created\_at}) viene usata la classe \textit{Date} il cui risultato viene parsato in un formato ``human'', composto di giorno, mese e anno.
+Il metodo \textit{padstart(n, c)} trasla la stringa fino al raggiungimento di \textit{n}
+caratteri aggiungendo in testa la giusta quiantità di caratteri \textit{c}. Quindi prende
+mediante il metodo \textit{getDate()} il giorno del mese e, se di una sola cifra,
+ci emtte davanti uno 0. Poi con il meotodo \textit{.getMonth()} si ottiene il mese
+(ma partendo da 0, che rappresenta Gennaio) al quale viene aggiunto 1, procedendo
+poi come per il giorno. Per l'anno si usa banalmente il metodo \textit{getFullYear()}:
+\begin{shaded} 
+\begin{minted}{js}
+var today = new Date();
+var dd = String(today.getDate()).padStart(2, '0');
+var mm = String(today.getMonth() + 1).padStart(2, '0');
+var yyyy = today.getFullYear();
+var created_at = dd + '/' + mm + '/' + yyyy;
+\end{minted}
+\end{shaded}
+per quanto riguarda il campo \textit{status} viene aggiunto il valore \textit{created} in quanto è l'unico scenario di successo di questo progetto:
+\begin{shaded} 
+\begin{minted}{js}
+var status = 'created';
+\end{minted}
+\end{shaded}
+Come vedremo dopo il backend non è in diretto contatto con il frontend
+ma si ha di mezzo un gateway che nel nostro casso passa una stringa contenente un json al backend.
+Si ha quindi il metodo \textit{JSON.parse(string)} per ottenere un oggetto json con i dati della richiesta (quindi solo quelli del campo \textit{req.body} che per comodità vengono assegnati ad una variabile con lo stesso nome):
+\begin{shaded} 
+\begin{minted}{js}
+req.body = JSON.parse(Object.keys(req.body)[0]);  
+\end{minted}
+\end{shaded}
+Viene quindi definito l'oggetto con la richiesta sfruttando appunto \textit{req.body} e i tre campi sopra definiti:
+\begin{shaded} 
+\begin{minted}{js}
+var request = {
+  user_id: req.body.user_id,
+  title: req.body.title,
+  language: req.body.language,
+  framework: req.body.framework,
+  dataset: req.body.dataset,
+  dataset_datatype: req.body.dataset_datatype,
+  model: req.body.model,  
+  status: status,
+  created_at: created_at,
+  job_id: job_id
+};
+\end{minted}
+\end{shaded}
+SI provvede poi al salvataggio della richiesta nel database sfruttando il metodo \textit{.get(string)} di lowdb che seleziona il campo \textit{request} impostato di default, con il metodo \textit{.push(object)} inserisce l'oggetto json e con il metodo \textit{.write()} scrive nel file:
+\begin{shaded} 
+\begin{minted}{js}
+db.get('requests').push(request).write();
+\end{minted}
+\end{shaded}
+Viene settato quindi l'header della risposta aggiungendo i tre parametri creati,
+e si aggiunge l'intestazione \textit{'Access-Control-Allow-Origin': '*',} usata per determinare
+se è possibile accedere alla risorsa partendo dal contenuto che opera nell'origine corrente:
+\begin{shaded} 
+\begin{minted}{js}
+res.set({
+ 'Access-Control-Allow-Origin': '*',
+    
+ 'Status': status,
+ 'Created_at': created_at,
+ 'Location': job_id
+});              
+\end{minted}
+\end{shaded}
+Infine viene inviata la risposta con status code pari a 201, indicando specificatamente il ``path'' \textit{job\_id} contenuto nell'header (???) inviando un json contenente i vari campi (???).\\
+\begin{shaded} 
+\begin{minted}{js}
+res.status(201).location(job_id).json(request);              
+\end{minted}
+\end{shaded}
+Sempre sullo stesso endpoint si ha anche la query mediante lo \textit{user\_id}, usando il metodo GET:
+\begin{shaded} 
+\begin{minted}{js}
+app.get("/brainjobs-backend/api/v1/jobs", (req, res) => {
+  ...
+});
+\end{minted}
+\end{shaded}
+Viene settato quindi l'header della risposta con l'intestazione \textit{'Access-Control-Allow-Origin': '*',}
+\begin{shaded} 
+\begin{minted}{js}
+res.set({
+  'Access-Control-Allow-Origin': '*'                
+});
+\end{minted}
+\end{shaded}
+
+E si passa quindi alla query al database, mediante prima il \textit{.get(string)}
+per selezionare il giusto campo, poi il metodo \textit{.filter(string)} per effettuare
+la query selezionando solo quelli che hanno una certa condizione, e la \textit{.value()}
+che restiuisce i valori, e all'invio, in formato json della ripsota, con il metodo \textit{.json(string)}
+La condizione viene rappresentata mediante la riochiesta che il campo \textit{user\_id} corrisponda allo \textit{user\_id} presente in \textit{req.query}, che sfrutta l'url (da notare il ``?'') \textit{jobs?user\_id=user\_id}:
+\begin{shaded} 
+\begin{minted}{js}
+res.json(db.get('requests')
+ .filter({ user_id: req.query.user_id }).value());
+\end{minted}
+\end{shaded}
+Abbiamo infine l'altra GET, quella per ottenere la richiesta corripondente ad un \textit{job\_id}
+sull'endpoint dedicato: \textit{/brainjobs-backend/api/v1/jobs/:job\_id\
+}. Il principio
+è simile a quello dell'altra query solo che useremo il metodo \textit{.find(string)}
+per trovare l'unica richiesta co quel dato \textit{job\_id}. Inoltre la query verrà
+effettuata mediante il \textit{job\_id} passato nell'endpoint( con il ``:'') al quale
+quindi non si accede più con il metodo \textit{query} bensì con quello \textit{params}, che ritorna il nome del parametro quando presente:
+
+\begin{shaded} 
+\begin{minted}{js}
+app.get("/brainjobs-backend/api/v1/jobs/:job_id", (req, res) =>{    
+ res.set({
+   'Access-Control-Allow-Origin': '*'
+ });
+ res.json(db.get('requests')
+  .find({ job_id: req.params.job_id }).value());  
+});
+\end{minted}
+\end{shaded}
 \end{document}
