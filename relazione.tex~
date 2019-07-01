@@ -1,0 +1,196 @@
+\documentclass[a4paper,12pt, oneside]{book}
+
+%\usepackage{fullpage}
+\usepackage[italian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{graphics}
+\usepackage{amsfonts}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{amstext}
+\usepackage{engrec}
+\usepackage{rotating}
+\usepackage[safe,extra]{tipa}
+\usepackage{showkeys}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{enumerate}
+\usepackage{braket}
+\usepackage{marginnote}
+\usepackage{pgfplots}
+\usepackage{cancel}
+\usepackage{polynom}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{framed}
+\usepackage{pdfpages}
+\usepackage{pgfplots}
+\usepackage[cache=false]{minted}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead[LE,RO]{\slshape \rightmark}
+\fancyhead[LO,RE]{\slshape \leftmark}
+\fancyfoot[C]{\thepage}
+
+
+
+\title{BrainJobs}
+\author{UniShare\\\\Davide Cozzi\\\href{https://t.me/dlcgold}{@dlcgold}\\\\Gabriele De Rosa\\\href{https://t.me/derogab}{@derogab}}}
+\date{}
+
+\pgfplotsset{compat=1.13}
+\begin{document}
+\maketitle
+
+\definecolor{shadecolor}{gray}{0.80}
+
+\newtheorem{teorema}{Teorema}
+\newtheorem{definizione}{Definizione}
+\newtheorem{esempio}{Esempio}
+\newtheorem{corollario}{Corollario}
+\newtheorem{lemma}{Lemma}
+\newtheorem{osservazione}{Osservazione}
+\newtheorem{nota}{Nota}
+\newtheorem{esercizio}{Esercizio}
+\tableofcontents
+\renewcommand{\chaptermark}[1]{%
+	\markboth{\chaptername
+		\ \thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection.\ #1}}
+
+\chapter{Introduzione}
+BrainJobs è un (ipotetico) servizio cloud di tipo Software-as-a-Service (SaaS) che offre ai
+suoi utenti la possibilità di “allenare” modelli di apprendimento automatico, di valutarne le
+prestazioni ed (eventualmente) riutilizzarli per effettuare simulazioni.
+Il sistema permette agli utenti di effettuare richieste di allenamento o simulazione caricando i
+dati insieme al modello o utilizzandone uno già precedentemente allenato e salvato nel
+proprio archivio. In base al linguaggio o al framework utilizzato per il codice del modello,
+BrainJobs lancia la computazione in un particolare ambiente di esecuzione che verrà
+istanziato “on-the-fly” in un’altra piattaforma cloud di tipo Serverless basata su containers
+(es: Apache OpenWhisk, Knative, ...).
+Gli utenti possono sottomettere più richieste consecutive. Esse verranno gestite in parallelo
+in un sistema a coda. Ogni richiesta di un utente corrisponde ad un task di lavoro (job).
+Gli utenti possono controllare lo stato delle loro richieste dalla dashboard di BrainJobs, ed
+una volta terminate, visualizzarne i risultati. Successivamente, il sistema permette di scartare
+o salvare il modello per utilizzi futuri.
+L’architettura del servizio BrainJobs è suddivisa in tanti servizi e componenti, ognuno con un
+compito ben specifico. Al vostro team, è richiesta la creazione di due componenti:
+\begin{enumerate}
+\item un componente di frontend implementato utilizzando HTML, CSS e JavaScript che
+  utilizza il paradigma AJAX per inviare/ricevere dati
+\item un componente di backend che espone una HTTP API REST
+\end{enumerate}
+Il frontend deve permettere ad un utente di creare una nuova richiesta di allenamento,
+visualizzare la lista delle sue richieste e visualizzare le informazioni di dettaglio di ogni
+richiesta.
+Il backend deve essere in grado di salvare una nuova richiesta, fornire la lista delle richieste
+di un utente e restituire informazioni di dettaglio di ogni richiesta.
+Una volta che il backend ha salvato una nuova richiesta, altri servizi di BrainJobs si
+occuperanno di lanciare la computazione, aggiornare lo stato del job ed aggiungere i
+risultati.\\
+\begin{figure}[h!]
+  \centering
+  \includegraphics[scale = 0.7]{img/struttura.png}
+  \caption{struttura finale del progetto}
+\end{figure}
+\chapter{FrontEnd}
+Iniziamo parlando del frontend. Per quanto riguarda l'aspetto estetico è stato usato un tema di Bootstrap
+per poter rappresentare più semplicemente componenti come il menù presente nella parte alta
+della pagina, contenente le informazioni del progetto, e la navbar con il bottone per richiamare il menù. Entrambi componenti sono nel tag \textit{header}.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[scale = 0.385]{img/navbar.png}
+  \caption{navbar}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[scale = 0.385]{img/menu.png}
+  \caption{menù a scomparsa}
+\end{figure}
+
+\textbf{navbar}:
+\begin{shaded}
+\begin{minted}{html}
+<div class="navbar navbar-dark bg-dark shadow-sm">
+ <div class="container d-flex justify-content-between">
+  <a href="#" class="navbar-brand d-flex align-items-center">
+   <strong><i class="fas fa-brain"></i> BrainJobs</strong>
+   </a>
+   
+  <button class="navbar-toggler" type="button"
+    data-toggle="collapse"
+    data-target="#navbarHeader" aria-controls="navbarHeader"
+    aria-expanded="false" aria-label="Toggle navigation">
+   <span class="navbar-toggler-icon"></span>
+  </button>
+ </div>
+</div>
+\end{minted}
+\end{shaded}
+\textbf{Menù:}
+\begin{shaded}
+\begin{minted}{html}
+<div class="collapse bg-dark" id="navbarHeader">
+ <div class="container">
+  <div class="row">
+   <div class="col-sm-8 col-md-7 py-4">
+    <h4 class="text-white">Informazioni</h4>
+    <p class="text-muted">
+     Progetto del corso di Sistemi Distribuiti dell'anno
+      accademico 2018/19 all'università degli studi di
+       Milano-Bicocca.
+    </p>
+   </div>
+   <div class="col-sm-4 offset-md-1 py-4">
+    <h4 class="text-white">Crediti</h4>
+     <ul class="list-unstyled">
+      <li><a class="text-white"
+       href="https://www.github.com/dlcgold">
+        Davide Cozzi</a></li>
+      <li><a class="text-white"
+       href="https://www.github.com/derogab">
+        Gabriele De Rosa</a></li>
+     </ul>
+    </div>
+   </div>
+  </div>
+</div>
+\end{minted}
+\end{shaded}
+Si passa poi alla sezione con il titolo della pagina, con l'icona presa da quella
+messe a disposizione sul sito \url{https://fontawesome.com/icons/}:
+\begin{figure}[h!]
+  \centering
+  \includegraphics[scale = 0.8]{img/titolo.png}
+  \caption{titolo della pagina}
+\end{figure}
+\begin{shaded}
+\begin{minted}{html}
+<section class="jumbotron text-center">
+ <div class="container">
+  <h1 class="jumbotron-heading"><i class="fas fa-brain"></i>
+   BrainJobs</h1>
+ </div>
+</section>
+\end{minted}
+\end{shaded}
+Analizziamo ora una delle parti principali della pagina: \textbf{il form di inserimento dati}. Qui si è fatto uso della classe \textit{form-group} per impostare i
+vari campi del form, con titolo e \textit{form-control} per l'inserimento, e della
+classe \textit{custom-select} per quei campi con selezione obbligatoria,
+dove quindi è stato aggiunto un selettore:
+\begin{figure}[H!]
+  \centering
+  \includegraphics[scale = 0.7]{img/form.png}
+  \caption{form per l'inserimento della richiesta}
+\end{figure}
+\newpage
+\begin{figure}[h!]
+  \centering
+  \includegraphics[scale = 0.7]{img/selettore.png}
+  \caption{esempio di selettore}
+\end{figure}
+\end{document}
