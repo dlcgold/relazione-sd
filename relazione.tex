@@ -397,7 +397,7 @@ Proseguendo oltre incontriamo la prima funzione di \textbf{jQuery} che controlla
 sia pronto per l'esecuzione di codice javascript:
 \begin{shaded}
 \begin{minted}{js}
-\$(document).ready(function(){
+$(document).ready(function(){
  ...
 });
 \end{minted}
@@ -418,13 +418,13 @@ Definiamo poi una variabile per ogni campo del form sfruttando il metodo di jque
 \textit{.val()} che resituisce il valore di un id, con l'aggiunta del \textit{.trim()} che rimuove eventuali spazi all'inizio e alla fine:
 \begin{shaded}
 \begin{minted}{js}
- var user_id = \$("#user_id").val().trim();
- var title = \$("#title").val().trim();
- var language = \$("#language").val().trim();
- var framework = \$("#framework").val().trim();
- var dataset = \$("#dataset").val().trim();
- var dataset_datatype = \$("#dataset_datatype").val().trim();
- var model = \$("#model").val().trim();
+ var user_id = $("#user_id").val().trim();
+ var title = $("#title").val().trim();
+ var language = $("#language").val().trim();
+ var framework = $("#framework").val().trim();
+ var dataset = $("#dataset").val().trim();
+ var dataset_datatype = $("#dataset_datatype").val().trim();
+ var model = $("#model").val().trim();
 \end{minted}
 \end{shaded}
 La traccia impone l'obbligo di avere tutti i campi compilati tranne quello riguardante
@@ -435,7 +435,7 @@ e il metodo \textit{.html}, un alert, con un bottone dedicato alla sua chiusura:
 \begin{minted}{js}
 if (!user_id || !title || !language ||
      !dataset || !dataset_datatype || !model ) { 
-\$('#send-form-result').html(
+$('#send-form-result').html(
    '<div class="alert alert-warning alert-dismissible fade show"
      role="alert">'
      +'<strong>Warning!</strong> Compilare i campi obbligatori.'
@@ -458,7 +458,7 @@ In informatica AJAX, acronimo di Asynchronous JavaScript and XML, è una tecnica
 
 AJAX è asincrono nel senso che i dati extra sono richiesti al server e caricati in background senza interferire con il comportamento della pagina esistente. Normalmente le funzioni richiamate sono scritte con il linguaggio JavaScript. Tuttavia, e a dispetto del nome, l'uso di JavaScript e di XML non è obbligatorio, come non è detto che le richieste di caricamento debbano essere necessariamente asincrone. 
 \end{shaded}
-Si usa quindi il metodo \textit{\$.ajax()}, a cui viene specificato, mediante il campo
+Si usa quindi il metodo \textit{$.ajax()}, a cui viene specificato, mediante il campo
 \textit{type}, il tipo di richiesta, mediante il campo \textit{url}, l'endpoint,
 mediante il campo \textit{dataType}, il tipo di dato che ci si aspetta dal server,
 mediante il campo \textit{data}, i dati che devono essere mandati al server, mediante il campo \textit{success}, la funzione che deve essere eseguita
@@ -481,8 +481,8 @@ Passiamo ora alla prima delle due query, quella nel quale si inserisce uno \text
 
 \begin{shaded}
 \begin{minted}{js}
-\$(document).ready(function() {
-  var user_id = \$("#user_id_search").val().trim();
+$(document).ready(function() {
+  var user_id = $("#user_id_search").val().trim();
   e.preventDefault();
   ...
 });
@@ -493,7 +493,7 @@ Anche qui con un if controlliamo che sia stato effettivamente inserito uno user\
 \begin{shaded}
 \begin{minted}{js}
  if( !user_id ) {
-  \$('#results').html('<div class="alert alert-warning
+  $('#results').html('<div class="alert alert-warning
     alert-dismissible fade show" role="alert">'
    +'<strong>Warning!</strong> Compila il campo user_id.'
    +'<button type="button" class="close" data-dismiss="alert
@@ -704,7 +704,7 @@ app_backend.use(bodyParser.urlencoded({ extended: false }));
 Essendo questo uno dei due file che verranno effettivamente eseguiti si stampano le porte assegnate al backend e al frontend:
 \begin{shaded}
 \begin{minted}{shell}
-brainjobs-backend git:(v4) node index.js
+brainjobs-backend : node index.js
 
  Web Server started.
  API started on: 8082
@@ -976,6 +976,132 @@ app.post("/brainjobs-gateway/api/v1/*", (req, res) => {
 });
 \end{minted}
 \end{shaded}
-\textbf{Notiamo come sia nella GET che nella POST viene usata la wildcards ``*'' nell'url per permettere un reindirizzamento completo.}
+\textbf{Notiamo come sia nella GET che nella POST viene usata la wildcards ``*'' nell'url per permettere un reindirizzamento completo.}\\
+\newpage
+In fase di esecuzione si avrà:
+\begin{shaded}
+\begin{minted}{shell}
+brainjobs-backend: node index.js
+ Gateway started on: 8080
+\end{minted}
+\end{shaded}
 \chapter{Esecuzione del Progetto}
+Per eseguire il progetto bisogna innanzitutto verificare che le 3 porte 8080, 8081 e 8082
+siano libere. Bisogna poi spostarsi nelle cartelle brainjobs-backend e brainjobs-gateway e in entrambe eseguire il comando \textit{npm install}:
+\begin{shaded} 
+\begin{minted}{js}
+brainjobs-backend: npm install
+ audited 167 packages in 1.767s
+ found 0 vulnerabilities
+
+brainjobs-backend: cd ../brainjobs-gateway
+brainjobs-gateway: npm install            
+ audited 163 packages in 1.611s
+ found 0 vulnerabilities        
+\end{minted}
+\end{shaded}
+per installare le eventuali dipendenze elencate nel file \textit{package.json} nella cartella \textit{node\_modules}.
+A questo punto bisogna contemporaneamente eseguire i due comandi \textit{node index.js}
+all'interno delle cartelle brainjobs-backend e brainjobs-gateway. Un comando comodo
+può essere, per non dover aprire più terminali:
+\begin{shaded} 
+\begin{minted}{bash}
+  cd brainjobs-backend ; \
+  node index.js & ; \
+  cd .. ; \
+  cd brainjobs-gateway ; \
+  node index.js  
+\end{minted}
+\end{shaded}
+Una seconda alternativa può essere quella di usare un \textit{process manager} per nodejs come \textbf{pm2}, \url{https://github.com/Unitech/PM2}. Dopo averlo installato con:
+\begin{shaded} 
+\begin{minted}{bash}
+  npm install -g pm2
+\end{minted}
+\end{shaded}
+l'uso è simile alla sequenza di comandi data sopra, con la differenza che sarà pm2
+ad occuparsi di eseguire il tutto, permettendo eventualmente anche il controllo
+dei vari server (nominati con l'opzione \textit{--name}) in esecuzione mediante logs, interfaccia web o monitor tty. Si ha quindi, per esempio:
+\begin{shaded} 
+\begin{minted}{bash}
+  cd brainjobs-backend && \
+    pm2 start index.js --name backend && \
+    cd .. && \
+    cd brainjobs-gateway && \
+    pm2 start index.js --name gateway && \
+    pm2 logs
+\end{minted}
+\end{shaded}
+\chapter{Docker}
+\begin{shaded}
+  Docker è un progetto open-source che automatizza il deployment (consegna o rilascio
+  al cliente, con relativa installazione e messa in funzione o esercizio, di una
+  applicazione o di un sistema software tipicamente all'interno di un sistema informatico aziendale)
+  di applicazioni all'interno di contenitori software, fornendo
+  un'astrazione aggiuntiva grazie alla virtualizzazione a livello di sistema operativo
+  di Linux. Docker utilizza le funzionalità di isolamento delle risorse del kernel
+  Linux come ad esempio cgroups e namespaces per consentire a "container" indipendenti
+  di coesistere sulla stessa istanza di Linux, evitando l'installazione e la manutenzione di una macchina virtuale. Docker permette di esporre un set di porte desiderato.
+\end{shaded}
+Realizzare un container per questo progetto è abbastanza veloce, si crea un \textit{dockerfile}
+contenente innanzitutto l'immagine da cui si vuole partire. Per nodejs, su dockerhub,
+è disponibile l'immagine ufficiale (\url{https://hub.docker.com/_/node}). Si crea
+poi una directory su cui lavorare nel container e si copiano le cartelle del prpogetto,
+si eseguono i comandi per installare le dipendenze, si espogono le tre porte necessarie
+e infine di definisce il comando da eseguire alla fine.
+\newpage
+Un esempio di dockerfile, usando il metodo di esecuzione con \textit{pm2} è:
+\begin{shaded} 
+\begin{minted}{docker}
+FROM node:10
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Copy folders
+COPY brainjobs-backend ./brainjobs-backend
+COPY brainjobs-frontend ./brainjobs-frontend
+COPY brainjobs-gateway ./brainjobs-gateway
+
+# Install dependences
+RUN cd brainjobs-backend && npm install
+RUN cd brainjobs-gateway && npm install
+
+# Install Process Manager
+RUN npm install -g --silent pm2
+
+# Open ports
+EXPOSE 8080 8081 8082
+
+# Start 
+CMD cd brainjobs-backend && \
+    pm2 start index.js --name backend && \
+    cd .. && \
+    cd brainjobs-gateway && \
+    pm2 start index.js --name gateway && \
+    pm2 logs    
+\end{minted}
+\end{shaded}
+Si ha inoltre un file chiamato \textit{.dockerignore} dove si elenano i nomi dei file o delle directory che devono essere ignorati nella fase di COPY. Nel nostro caso le cartelle \textit{node\_modules} in qunto verranno generate da \textit{npm install}, i log e il database in json di \textit{lowdb}, in quanto viene creato automaticamente se assente e settato con dei parametri di default specifici.
+\newpage
+Si ha quindi un semplice file \textit{.dockerignore}:
+\begin{shaded} 
+\begin{minted}{docker}
+node_modules
+npm-debug.log
+db.json
+\end{minted}
+\end{shaded}
+Controllando di essere nella directory del \textup{dockerfile} e del \textit{.dockerignore}, buildiamo la nostra immagine con il comando:
+\begin{shaded} 
+\begin{minted}{bash}
+docker build -t brainjobs .
+\end{minted}
+\end{shaded}
+Questa fase impiegherà diversi minuti, sopratutto a causa dell'installazione di \textit{pm2}. Infine eseguiamo l'immagine, specificando che vogliamo lo stesso numero di porta tra quello della macchina fisica e quello esposto dal container:
+\begin{shaded} 
+\begin{minted}{bash}
+docker run  -p 8080:8080 -p 8081:8081 -p 8082:8082 brainjobs
+\end{minted}
+\end{shaded}
 \end{document}
