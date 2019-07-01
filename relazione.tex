@@ -693,7 +693,7 @@ app_frontend.use('/brainjobs-frontend',
  express.static('../brainjobs-frontend/'));
 \end{minted}
 \end{shaded}
-Viene anche usato \textit{body-parse}, \url{https://github.com/expressjs/body-parser}, che parsa il body della richiesta in un middleware, raggiungibile mediante \textit{req.body}.
+Viene anche usato \textit{body-parse}, \url{https://github.com/expressjs/body-parser}, che parsa il body della richiesta in un middleware, raggiungibile mediante \textit{req.body}, usando il metodo \textit{.urlencoded({options})} per il parsing di dati nel formato \textit{application/x-www-urlencoded}. Il formato\textit{ application/x-www-form-urlencoded} permette di trasmettere i parametri all'interno del contenuto di una request, usando la stessa sintassi che serve a comunicare i parametri nella URL.
 \begin{shaded}
 \begin{minted}{js}
 var bodyParser = require('body-parser');
@@ -882,5 +882,100 @@ brainjobs-gateway
 │   └── package-lock.json
 \end{minted}
 \end{shaded}
+Partiamo, come nel caso del backend, dall'\textit{index.js} presente subito nella cartella
+dedicata al gateway. Creaiamo anche qui una istanza con express. Viene anche usato
+\textit{body-parse}, \url{https://github.com/expressjs/body-parser}, che parsa il
+body della richiesta in un middleware, raggiungibile mediante \textit{req.body},
+usando il metodo \textit{.urlencoded({options})} per il parsing di dati nel formato
+\textit{application/x-www-urlencoded} e si mette l'istanza in ascolto sulla porta 8080.\\
+SI ha una differenza rispetto al backend, infatti qui si inizializza una costante che istanzia un client HTTP basato su \textit{promise}, i quali oggetti rappresentano l'eventuale completamento (o fallimento) di un'operazione asincrona: \textit{axios}, \url{https://github.com/axios/axios}. L'istanza di express e quella di axios vengono passati come parametro all'\textit{index.js} contenuto nella cartella \textit{/api}.\\
+Dobbiamo implementare un gateway che effettua un semplice reindirizzamento.\\
+Cominciamo con l'inolto di tutte le richieste GET. Si usa il metodo \textit{.get()}
+dell'istanza di express. Subito viene definita una variabile contenente l'url a cui
+deve essere reindirizzata la GET, ovvero il path attuale della richiesta (recuperabile con \textit{req.originalUrl})
+e usando il metodo \textit{replace(a, b)} delle stringhe) con \textit{brainjobs-backend} al posto di \textup{brainjobs-gateway}:
+\begin{shaded} 
+\begin{minted}{js}
+module.exports = function (app, axios) {
 
+  app.get("/brainjobs-gateway/api/v1/*", (req, res) => {
+
+    var redirect = 'http://localhost:8082' +
+     req.originalUrl.replace('gateway', 'backend');
+    ...
+  });
+}
+\end{minted}
+\end{shaded}
+Entra quindi in gioco \textit{axios}, a cui vengono passate le opzioni riguardanti il metodo
+della richiesta, in questo caso \textit{get}, l'url a cui fare la richiesta, ovvero
+l'url del backend che abbiamo appena creato, e il formato della risposta del server,
+in questo caso \textit{json}. Con il metodo \textit{.then(function(response))} si
+esegue una funzione specifica, nel nostro caso si setta l'header della risposta con
+\textit{Access-Control-Allow-Origin *}, permettendo a tutti di accedere alla risorsa
+partendo dal contenuto che opera nell'origine corrente. Infine con \textit{res.json(object)} viene inviata la risposta in formato json.\\
+xios richiede obbligatoriamente anche di implementare una funzione in caso di errore,
+e nel nostro caso consiste nell'invio di un json contenente la specifica dell'errore:
+\begin{shaded} 
+\begin{minted}{js}
+axios({
+   method: 'get',
+   url: redirect,
+   responseType: 'json'
+  })
+  .then(function (response) {
+  
+   res.set({
+    'Access-Control-Allow-Origin': '*'                
+   });
+  
+   res.json(response.data);
+
+  })
+  .catch(function (error) {
+   console.log(error);
+   res.json({'error': ''+error});
+  });       
+  
+ });
+
+\end{minted}
+\end{shaded}
+Nell medesimo modo reindirizziamo anche le richieste post, impostando il metodo come \textit{post}, impostando i dati da inviare come quelli contenuti nel body della richiesta, con \textit{req.body}, e settando nell'header il parametro \textit{application/x-www-form-urlencoded} sopra spiegato:
+\begin{shaded} 
+\begin{minted}{js}
+app.post("/brainjobs-gateway/api/v1/*", (req, res) => {
+
+  var redirect = 'http://localhost:8082' +
+   req.originalUrl.replace('gateway', 'backend');       
+  var forward_data = req.body;
+
+  axios({
+   method: 'post',
+   url: redirect,
+   responseType: 'json',
+   headers: {
+    'Content-Type': 'application/x-www-form-urlencoded'
+   },
+   data: forward_data
+  })
+  .then(function (response) {
+  
+   res.set({
+    'Access-Control-Allow-Origin': '*'                
+   });
+   
+   res.json(response.data);
+
+  })
+  .catch(function (error) {
+   console.log(error);
+   res.json({'error': ''+error});
+  });  
+
+});
+\end{minted}
+\end{shaded}
+\textbf{Notiamo come sia nella GET che nella POST viene usata la wildcards ``*'' nell'url per permettere un reindirizzamento completo.}
+\chapter{Esecuzione del Progetto}
 \end{document}
