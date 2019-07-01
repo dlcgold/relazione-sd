@@ -415,16 +415,16 @@ Innanzitutto abbiamo un'struzione per prevenire l'azione di default di un evento
 \end{minted}
 \end{shaded}
 Definiamo poi una variabile per ogni campo del form sfruttando il metodo di jquery
-\textit{.val()} che resituisce il valore di un id:
+\textit{.val()} che resituisce il valore di un id, con l'aggiunta del \textit{.trim()} che rimuove eventuali spazi all'inizio e alla fine:
 \begin{shaded}
 \begin{minted}{js}
- var user_id = \$("#user_id").val();
- var title = \$("#title").val()
- var language = \$("#language").val();
- var framework = \$("#framework").val();
- var dataset = \$("#dataset").val();
- var dataset_datatype = \$("#dataset_datatype").val();
- var model = \$("#model").val();
+ var user_id = \$("#user_id").val().trim();
+ var title = \$("#title").val().trim();
+ var language = \$("#language").val().trim();
+ var framework = \$("#framework").val().trim();
+ var dataset = \$("#dataset").val().trim();
+ var dataset_datatype = \$("#dataset_datatype").val().trim();
+ var model = \$("#model").val().trim();
 \end{minted}
 \end{shaded}
 La traccia impone l'obbligo di avere tutti i campi compilati tranne quello riguardante
@@ -482,7 +482,7 @@ Passiamo ora alla prima delle due query, quella nel quale si inserisce uno \text
 \begin{shaded}
 \begin{minted}{js}
 \$(document).ready(function() {
-  var user_id = \$("#user_id_search").val();
+  var user_id = \$("#user_id_search").val().trim();
   e.preventDefault();
   ...
 });
