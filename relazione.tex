@@ -317,7 +317,19 @@ e del \textit{custom.js} mediante il quale, con l'uso di \textbf{ajax}, sono sta
 <script src="js/custom.js"></script>
 \end{minted}
 \end{shaded}
-\newpage
+Come footer si ha l'icona del copyright e un ``torna su'' che è collegato ad un'ancora all'inizio dell'html:
+\begin{shaded}
+\begin{minted}{html}
+<footer class="text-muted">
+ <div class="container">
+  <p class="float-right">
+   <a href="#">Torna su</a>
+  </p>
+  <p><i class="far fa-copyright"></i> BrainJobs 2019</p>
+ </div>
+</footer>
+\end{minted}
+\end{shaded}
 Abbiamo visto il file \textit{HTML} ma questo non basta in quanto serve il \textit{custom.js} per interagire, mediante jquery e ajax, con il backend. Si ha quindi la seguente struttura per il \textbf{frontend}:
 \begin{shaded}
 \begin{minted}{shell}
@@ -476,7 +488,6 @@ Passiamo ora alla prima delle due query, quella nel quale si inserisce uno \text
 });
 \end{minted}
 \end{shaded}
-\newpage
 Anche qui con un if controlliamo che sia stato effettivamente inserito uno user\_id prima di effettuare la query premendo il bottone e in caso contrario si provvede a stampare un alert dedicato:
 
 \begin{shaded}
@@ -514,14 +525,103 @@ jquery permettendo di eseguire una \textit{function} per ogni elemento, stampo i
 vari campi di ogni richiesta che mi viene resitutita dal server salvando progressivamente il tutto in una stringa \textit{result} che verrà associata all'id omonimo nell'\textit{index.html}. \\
 \begin{figure}[H]
   \centering
-  \includegraphics[scale = 0.65]{img/good-user.png}
+  \includegraphics[scale = 0.43]{img/good-user.png}
   \caption{risultati in caso di presenza di richieste}
 \end{figure}
-\newpage
 In caso di \textit{error} invece si avrà il solito alert:
 \begin{figure}[H]
   \centering
   \includegraphics[scale = 0.7]{img/bad-user-query.png}
   \caption{alert in caso di errore nella richiesta ajax}
+\end{figure}
+Per quanto riguarda la seconda query funziona esattamente nella stessa maniera con
+l'unica differenza che in caso di presenza di una richiesta con il job\_id idnicato
+non si ha alcun \textit{.each()} in quanto si può avere una sola richiesta con quel job\_id:
+\begin{shaded}
+\begin{minted}{js}
+$.ajax({
+
+    type: "GET",
+    url: API + 'jobs/' + job_id,
+    dataType: "json",
+    success: function(data) {
+     
+     if(!data){
+       $('#results').html('<div class="alert alert-warning
+        alert-dismissible fade show" role="alert">'
+        +'<strong>Warning!</strong> Questo job_id non esiste.'
+        +'<button type="button" class="close" data-dismiss="alert"
+         aria-label="Close">'
+        +'<span aria-hidden="true">&times;</span>'
+        +'</button>'
+        +'</div>');
+     }
+     else{
+
+      var result = "";
+      result += "user_id: " + data.user_id + " <br> ";
+      result += "title: " + data.title + " <br> ";
+      result += "language: " + data.language + " <br> ";
+      result += "framework: " + data.framework + " <br> ";
+      result += "dataset: " + data.dataset + " <br> ";
+      result += "dataset_datatype: " +
+       data.dataset_datatype + " <br> ";
+      result += "model: " + data.model + " <br> ";
+      result += "status: " + data.status + " <br> ";
+      result += "created_at: " + data.created_at + " <br> ";
+      result += "job_id: " + data.job_id + " <br> ";
+      result += "<br>";
+  
+      $('#results').html('<div class="alert alert-info"
+        role="alert">'
+       +'<strong>Dati richiesti</strong> <br><br>'+result
+       +'</div>');
+
+     }
+ 
+    },
+    error: function() {
+      $('#results').html('<div class="alert alert-danger
+       alert-dismissible fade show" role="alert">'
+     +'<strong>Errore!</strong> Si è verificato un
+      errore durante l\'invio della richiesta.'
+      +'<button type="button" class="close" data-dismiss="alert"
+       aria-label="Close">'
+       +'<span aria-hidden="true">&times;</span>'
+      +'</button>'
+     +'</div>');
+    }
+ 
+   });
+\end{minted}
+\end{shaded}
+\newpage
+Si ha quindi:
+\begin{figure}[H]
+\centering
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[scale = 0.42]{img/good-job.png}
+  \caption{risultato in caso di successo}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[scale = 0.4]{img/no-job.png}
+  \caption{alert mancata presenza di richieste per quel job\_id}
+\end{minipage}
+\end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale = 0.7]{img/err-job.png}
+  \caption{alert nel caso di errore della richiesta}
+\end{figure}
+\newpage
+Quindi nel complesso la pagina si presenta così:
+\begin{figure}[H]
+  \centering
+  \includegraphics[scale = 0.4]{img/pagina1.png}
+  \includegraphics[scale = 0.4]{img/pagina2.png}
+  \includegraphics[scale = 0.4]{img/pagina3.png}
+  \caption{frontend brainjob}
 \end{figure}
 \end{document}
